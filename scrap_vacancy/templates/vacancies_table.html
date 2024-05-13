@@ -50,7 +50,6 @@
     </div>
 </div>
 
-
 <div id="vacancies-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
     <!-- Карточки вакансий будут здесь -->
 </div>
@@ -112,14 +111,14 @@ function updatePagination(totalVacancies, currentPage, allVacancies) {
     document.getElementById('pagination').innerHTML = paginationHTML;
 }
 
-
 function redirectToVacancy(url) {
     window.open(url, '_blank');
 }
 
+    // Функция для создания HTML карточки вакансии
 function createCard(vacancy) {
     const fields = vacancy.fields;
-    if (!fields) return '';
+    if (!fields) return ''; // Если нет, возвращаем пустую строку
     const tags = fields.tags ? fields.tags.split(', ') : [];
 
     return `
@@ -142,14 +141,19 @@ function createCard(vacancy) {
     `;
 }
 
+    // Функция для обновления отображения карточек с применением фильтров
 function updateCardsDisplay(filters) {
+    // Фильтрация списка вакансий в соответствии с активными фильтрами
     const filteredVacancies = allVacancies.filter(vacancy => {
         if (filters.length === 0) return true; // Показать все вакансии, если фильтры не выбраны
+        // Преобразование списка тегов вакансии в массив
         const vacancyTags = vacancy.fields.tags ? vacancy.fields.tags.split(', ') : [];
+        // Вакансия должна соответствовать хотя бы одному из выбранных фильтров
         return filters.every(filter => vacancyTags.includes(filter));
     });
 
     if (filteredVacancies.length === 0) {
+        // Если отфильтрованных вакансий нет, выводим сообщение
         const container = document.getElementById('vacancies-container');
         container.innerHTML = `
             <div class="bg-gray-100 border border-gray-300 p-4 rounded-md">
@@ -157,15 +161,19 @@ function updateCardsDisplay(filters) {
             </div>
         `;
 
+        // Очищаем пагинацию
         document.getElementById('pagination').innerHTML = '';
     } else {
+        // Если отфильтрованные вакансии есть, отображаем их
         displayVacancies(1, filteredVacancies); // Первый параметр - номер страницы, второй - отфильтрованный список вакансий
     }
 }
 
 
+    // Начальное отображение всех вакансий
     updateCardsDisplay([]);
 
+    // Добавление обработчиков событий к кнопкам фильтров
     let currentFilters = [];
 
 

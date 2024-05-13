@@ -1,5 +1,6 @@
 import json
 
+import requests
 from django.contrib.auth.decorators import login_required
 from django.core import serializers
 from django.core.serializers import serialize
@@ -15,9 +16,10 @@ from django.contrib.auth.hashers import make_password
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import api_view
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, BasePermission
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .forms import CompanyForm, CompanyReviewForm
@@ -431,9 +433,6 @@ class DashboardAPIView(APIView):
 
         user_profile = UserProfile.objects.filter(user=request.user).first()
 
-        if not user_profile or not check_user_type(user_profile, 'RECRUITER'):
-            return Response({"error": "Access denied"}, status=status.HTTP_403_FORBIDDEN)
-
         serializer = UserProfileSerializer(user_profile)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -486,13 +485,21 @@ class IndexAPIView(APIView):
         all_vacancies = vacancy_service.get_all_vacancies_sorted()
         top_vacancies_by_company = vacancy_service.get_top_vacancies_by_company(all_vacancies)
 
+        top_vacancies_by_company_serializer = []
+        for company, vacancies in top_vacancies_by_company.items():
+            company_vacancies_serializer = VacancySerializer(vacancies, many=True)
+            company_data = {
+                'company': company,
+                'vacancies': company_vacancies_serializer.data
+            }
+            top_vacancies_by_company_serializer.append(company_data)
+
         all_vacancies_serializer = VacancySerializer(all_vacancies, many=True)
-        top_vacancies_by_company_serializer = VacancySerializer(top_vacancies_by_company, many=True)
         top_employers_serializer = EmployerSerializer(TOP_EMPLOYERS.values(), many=True)
 
         data = {
             "top_employers": top_employers_serializer.data,  # Assuming TOP_EMPLOYERS is defined somewhere
-            "top_vacancies_by_company": top_vacancies_by_company_serializer.data,
+            "top_vacancies_by_company": top_vacancies_by_company_serializer,
             "all_vacancies": all_vacancies_serializer.data
         }
         return Response(data, status=status.HTTP_200_OK)

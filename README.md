@@ -2,7 +2,7 @@
 
 #### 1. Клонирование репозитория
 ```
-git clone https://github.com/Aruzhannnnnnnn/joomys.git
+git clone https://github.com/adaskhan/joomys.git
 ```
 
 #### 2. Открытие проекта
